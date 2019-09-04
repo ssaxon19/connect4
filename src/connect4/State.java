@@ -15,22 +15,24 @@ package connect4;
 public class State {
 	private static final int HEIGHT = 6;
 	private static final int WIDTH = 7;
-	private boolean p1Turn;
+	private int moves;
 	private long p1Pieces;
 	private long mask;
 
 	public State() {
-		p1Turn = true;
+		moves = 0;
 		p1Pieces = 0L;
 		mask = 0L;
 	}
 
 	public State(State old) {
-		p1Turn = old.p1Turn;
+		moves = old.moves;
 		p1Pieces = old.p1Pieces;
 		mask = old.mask;
 	}
 	
+	
+	//delete later
 	public void setP1(long l) {
 		p1Pieces = l;
 	}
@@ -38,11 +40,17 @@ public class State {
 		mask = l;
 	}
 	
+	
+	public static long bottomMask(int col) {
+		return 1L << (col*(HEIGHT+1));
+	}
+	
 	// columns start at 0
 	public State place(int column) {
 		State newS = new State(this);
+		newS.setMask(mask | (mask + bottomMask(column)));
 		
-		
+		newS.addMove();
 		return newS;
 	}
 	
@@ -63,7 +71,7 @@ public class State {
 	public static String longToString(long l) {
 		String b = Long.toBinaryString(l);
 		int x = b.length();
-		for (int i = 0; i < 49-x; i++) {
+		for (int i = 0; i < (WIDTH*(HEIGHT+1))-x; i++) {
 			b = '0' + b;
 		}
 		return b;
@@ -75,9 +83,9 @@ public class State {
 		
 		for (int i = HEIGHT-1; i >= 0; i--) {
 			for (int j = 0; j < 7; j++) {
-				if (p1.charAt(i+7*j) == '1') {
+				if (p1.charAt((WIDTH*(HEIGHT+1)-1)-(i+7*j)) == '1') {
 					System.out.print("o ");
-				} else if (p2.charAt(i+7*j) == '1') {
+				} else if (p2.charAt((WIDTH*(HEIGHT+1)-1)-(i+7*j)) == '1') {
 					System.out.print("x ");
 				} else {
 					System.out.print("- ");
@@ -85,5 +93,9 @@ public class State {
 			}
 			System.out.println();
 		}
+	}
+	
+	public void addMove() {
+		moves++;
 	}
 }
