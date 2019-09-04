@@ -15,6 +15,7 @@ package connect4;
 public class State {
 	private static final int HEIGHT = 6;
 	private static final int WIDTH = 7;
+	//moves = number of pieces on the board
 	private int moves;
 	private long p1Pieces;
 	private long mask;
@@ -31,13 +32,25 @@ public class State {
 		mask = old.mask;
 	}
 	
-	
-	//delete later
+	//setters
 	public void setP1(long l) {
 		p1Pieces = l;
 	}
 	public void setMask(long l) {
 		mask = l;
+	}
+	public void setMoves(int m) {
+		moves = m;
+	}
+	
+	public long p2Pieces() {
+		return p1Pieces^mask;
+	}
+	public void addMove() {
+		moves++;
+	}
+	public boolean isP1Turn() {
+		return moves%2 == 0;
 	}
 	
 	
@@ -48,14 +61,51 @@ public class State {
 	// columns start at 0
 	public State place(int column) {
 		State newS = new State(this);
-		newS.setMask(mask | (mask + bottomMask(column)));
+		long newMask = mask | (mask + bottomMask(column));
+		
+		//if player 1's turn
+		if (isP1Turn()) {
+			newS.setP1(p1Pieces | (mask^newMask));
+		}
+		
+		newS.setMask(newMask);
+
 		
 		newS.addMove();
 		return newS;
 	}
 	
-	public long p2Pieces() {
-		return p1Pieces^mask;
+	public static boolean fourInARow(long b1) {
+		//columns
+		long b2 = b1 & (b1 << 2);
+		if ((b2 & (b2 << 1)) != 0) {
+			return true;
+		}
+		
+		//rows
+		b2 = b1 & (b1 << (HEIGHT+1)*2);
+		if ((b2 & (b2 << (HEIGHT+1))) != 0) {
+			return true;
+		}
+		
+		// diagonal /
+		b2 = b1 & (b1 << ((HEIGHT+1)*2+2));
+		if ((b2 & (b2 << (HEIGHT+1)+1)) != 0) {
+			return true;
+		}
+		
+		//diagonal \
+		b2 = b1 & (b1 << ((HEIGHT+1)*2-2));
+		if ((b2 & (b2 << (HEIGHT+1)-1)) != 0) {
+			return true;
+		}
+			
+			
+		return false;
+	}
+	
+	public boolean gameOver() {
+		return fourInARow(p1Pieces) || fourInARow(p2Pieces());
 	}
 	
 	public static long stringToLong(String s) {
@@ -93,9 +143,5 @@ public class State {
 			}
 			System.out.println();
 		}
-	}
-	
-	public void addMove() {
-		moves++;
 	}
 }
